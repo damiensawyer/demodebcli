@@ -16,14 +16,14 @@ A demonstration CLI application written in C# and compiled with AOT (Ahead of Ti
 ### Option 1: One-line Installation (Recommended)
 
 ```bash
-curl -fsSL https://[YOUR-USERNAME].github.io/demodebcli/install.sh | bash && sudo apt install demodebcli
+curl -fsSL https://damiensawyer.github.io/demodebcli/install.sh | bash && sudo apt install demodebcli
 ```
 
 ### Option 2: Manual APT Repository Setup
 
 1. **Add the repository:**
    ```bash
-   echo "deb [trusted=yes] https://[YOUR-USERNAME].github.io/demodebcli stable main" | sudo tee /etc/apt/sources.list.d/demodebcli.list
+   echo "deb [trusted=yes] https://damiensawyer.github.io/demodebcli stable main" | sudo tee /etc/apt/sources.list.d/demodebcli.list
    ```
 
 2. **Update package list:**
@@ -40,7 +40,7 @@ curl -fsSL https://[YOUR-USERNAME].github.io/demodebcli/install.sh | bash && sud
 
 1. **Download the latest .deb package:**
    ```bash
-   wget https://github.com/[YOUR-USERNAME]/demodebcli/releases/latest/download/demodebcli_*_amd64.deb
+   wget https://github.com/damiensawyer/demodebcli/releases/latest/download/demodebcli_*_amd64.deb
    ```
 
 2. **Install the package:**
@@ -129,7 +129,7 @@ After installation, the following files are installed:
 
 2. **Clone and build:**
    ```bash
-   git clone https://github.com/[YOUR-USERNAME]/demodebcli.git
+   git clone https://github.com/damiensawyer/demodebcli.git
    cd demodebcli
    dotnet publish -c Release --self-contained -r linux-x64
    ```
@@ -183,9 +183,9 @@ This is a demonstration project. Use as you see fit.
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/[YOUR-USERNAME]/demodebcli/issues)
+- **Issues**: [GitHub Issues](https://github.com/damiensawyer/demodebcli/issues)
 - **Documentation**: `man demodebcli`
-- **Repository**: [https://[YOUR-USERNAME].github.io/demodebcli](https://[YOUR-USERNAME].github.io/demodebcli)
+- **Repository**: [https://damiensawyer.github.io/demodebcli](https://damiensawyer.github.io/demodebcli)
 
 ---
 

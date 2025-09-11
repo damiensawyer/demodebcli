@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>demodebcli APT Repository</title>
+    <style>body { font-family: Arial, sans-serif; margin: 40px; } pre { background: #f4f4f4; padding: 15px; border-radius: 5px; }</style>
+</head>
+<body>
+    <h1>demodebcli APT Repository</h1>
+    <h2>Installation</h2>
+    <pre>curl -fsSL https://damiensawyer.github.io/demodebcli/install.sh | bash && sudo apt install demodebcli</pre>
+    <h2>Manual Setup</h2>
+    <pre>echo "deb [trusted=yes] https://damiensawyer.github.io/demodebcli stable main" | sudo tee /etc/apt/sources.list.d/demodebcli.list
+sudo apt update
+sudo apt install demodebcli</pre>
+</body>
+</html>

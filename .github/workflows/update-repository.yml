@@ -1,4 +1,4 @@
-name: Update APT repo
+name: Publish APT repo
 on:
   release: { types: [published] }
   workflow_dispatch:
@@ -19,10 +19,12 @@ jobs:
           sudo apt-get install -y dpkg-dev apt-utils jq
           sudo snap install gh || true
 
-      - name: Prepare tree
+      - name: Prepare layout
         run: |
           mkdir -p pool/main/d/demodebcli
           mkdir -p dists/stable/main/binary-amd64
+          # ensure GitHub Pages doesn't run Jekyll (which hides files like InRelease/Release/Packages)
+          touch .nojekyll
 
       - name: Download latest .deb from Releases
         env: { GH_TOKEN: ${{ github.token }} }
@@ -32,13 +34,13 @@ jobs:
             --pattern 'demodebcli_*_amd64.deb' --dir incoming --clobber
           cp incoming/demodebcli_*_amd64.deb pool/main/d/demodebcli/
 
-      - name: Build Packages
+      - name: Build Packages indexes
         run: |
           dpkg-scanpackages -m pool /dev/null > dists/stable/main/binary-amd64/Packages
           gzip -f -9 dists/stable/main/binary-amd64/Packages
-          xz -f  dists/stable/main/binary-amd64/Packages
+          xz   -f    dists/stable/main/binary-amd64/Packages
 
-      - name: Build Release (unsigned)
+      - name: Build Release (unsigned is fine with `[trusted=yes]`)
         run: |
           cat >release.conf <<'EOF'
           APT::FTPArchive::Release::Suite "stable";
@@ -53,4 +55,4 @@ jobs:
         with:
           commit_message: "Publish APT repo"
           branch: gh-pages
-          file_pattern: dists/** pool/**
+          file_pattern: dists/** pool/** .nojekyll

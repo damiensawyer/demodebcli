@@ -50,6 +50,22 @@ jobs:
           EOF
           apt-ftparchive -c=release.conf release dists/stable > dists/stable/Release
 
+      # after you’ve created dists/stable/main/binary-amd64/Packages{,.gz,.xz}
+      - name: Ensure Pages doesn’t hide non-HTML
+        run: touch .nojekyll
+      
+      - name: Build Release (unsigned; OK with [trusted=yes])
+        run: |
+          cat >release.conf <<'EOF'
+          APT::FTPArchive::Release::Suite "stable";
+          APT::FTPArchive::Release::Codename "stable";
+          APT::FTPArchive::Release::Components "main";
+          APT::FTPArchive::Release::Architectures "amd64";
+          EOF
+          # IMPORTANT: run from repo root and point at **dists/stable**
+          apt-ftparchive -c=release.conf release dists/stable > dists/stable/Release
+
+
       - name: Commit & push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:

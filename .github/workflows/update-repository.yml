@@ -42,6 +42,7 @@ jobs:
         cd dists/stable/main/binary-amd64
         dpkg-scanpackages ../../../../pool/main /dev/null > Packages
         gzip -c Packages > Packages.gz
+        xz -c Packages > Packages.xz
 
     - name: Generate Release file
       run: |
@@ -70,6 +71,9 @@ jobs:
         echo "SHA256:" >> Release
         find main -type f -printf " %s %P\n" -exec sha256sum {} \; | \
           awk '{if(NR%2==1) {size=$1; path=$2} else {print " " $1 " " size " " path}}' >> Release
+
+        # Create InRelease file (unsigned for now, since we're using [trusted=yes])
+        cp Release InRelease
 
     - name: Create repository configuration
       run: |

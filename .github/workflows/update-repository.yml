@@ -1,4 +1,5 @@
 name: Publish APT repo
+
 on:
   release: { types: [published] }
   workflow_dispatch:
@@ -9,26 +10,28 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout gh-pages branch
+      - name: Checkout gh-pages
         uses: actions/checkout@v4
         with:
           ref: gh-pages
           fetch-depth: 0
 
-      - name: Install tools
+      - name: Tools
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y dpkg-dev apt-utils jq xz-utils
+          sudo apt-get install -y dpkg-dev xz-utils jq apt-utils
           sudo snap install gh || true
 
-      - name: Ensure layout (clean stale dists) + disable Jekyll
+      # Clean EVERYTHING under dists to avoid stale Release contents
+      - name: Reset dists/ and ensure layout + disable Jekyll
         run: |
           set -euo pipefail
-          # start from a clean dists tree so Release paths are correct
           rm -rf dists
           mkdir -p dists/stable/main/binary-amd64
           mkdir -p pool/main/d/demodebcli
+          # remove any stray signed metadata from previous attempts
+          rm -f dists/stable/InRelease dists/stable/Release.gpg || true
           touch .nojekyll
 
       - name: Download latest release .deb
@@ -41,14 +44,14 @@ jobs:
           cp incoming/demodebcli_*_amd64.deb pool/main/d/demodebcli/
           ls -l pool/main/d/demodebcli/
 
-      - name: Build Packages (under main/binary-amd64)
+      - name: Build Packages (paths must start with pool/)
         run: |
           set -euo pipefail
           dpkg-scanpackages -m pool /dev/null > dists/stable/main/binary-amd64/Packages
           gzip -f -9 dists/stable/main/binary-amd64/Packages
           xz   -f    dists/stable/main/binary-amd64/Packages
 
-      - name: Build Release (unsigned; ok with [trusted=yes])
+      - name: Build Release (unsigned; fine with [trusted=yes])
         run: |
           set -euo pipefail
           cat > release.conf <<'EOF'
@@ -57,4 +60,17 @@ jobs:
           APT::FTPArchive::Release::Components "main";
           APT::FTPArchive::Release::Architectures "amd64";
           EOF
-          # run from repo root; target dists/stable so entries i
+          # IMPORTANT: release target is dists/stable (NOT dists/stable/main)
+          apt-ftparchive -c=release.conf release dists/stable > dists/stable/Release
+          echo "=== Sanity ==="
+          grep -E '^(Components:|Architectures:)| main/binary-amd64/Packages' dists/stable/Release || true
+
+      - name: Commit & push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Publish APT repo"
+          branch: gh-pages
+          file_pattern: |
+            dists/**
+            pool/**
+            .nojekyll

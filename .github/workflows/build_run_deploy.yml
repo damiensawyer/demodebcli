@@ -1,0 +1,164 @@
+name: Build, Package, and Publish APT repo
+
+on:
+  push: { branches: [main] }
+  workflow_dispatch:
+
+permissions:
+  contents: write   # build reads code; publish commits to gh-pages
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # If you have multiple projects, set this to the .csproj or .sln you want.
+  # Example: src/DemoCli/DemoCli.csproj
+  PROJECT_FILE: "main.sln"
+  APP_NAME: demodebcli
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Detect project/solution
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$PROJECT_FILE" ]]; then
+            echo "file=$PROJECT_FILE" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          mapfile -t slns < <(git ls-files '*.sln')
+          if (( ${#slns[@]} == 1 )); then
+            echo "file=${slns[0]}" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          mapfile -t projs < <(git ls-files '**/*.csproj' '*.csproj')
+          if (( ${#projs[@]} == 1 )); then
+            echo "file=${projs[0]}" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "Set env PROJECT_FILE to the .csproj you want." >&2
+          exit 1
+
+      - name: Restore & Publish (AOT, linux-x64)
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet restore "${{ steps.detect.outputs.file }}"
+          dotnet publish "${{ steps.detect.outputs.file }}" -c Release -r linux-x64 \
+            /p:PublishAot=true /p:SelfContained=true -o out/publish
+          ls -l out/publish
+
+      - name: Package .deb
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="$APP_NAME"
+          BIN="out/publish/$APP"             # AOT single-file binary name
+          # If your binary name differs, adjust APP_NAME above
+          test -x "$BIN" || { echo "Binary not found: $BIN"; ls -l out/publish; exit 1; }
+
+          # Version from first csproj <Version>, fallback to 0.0.0+run
+          CSproj=$(git ls-files '**/*.csproj' '*.csproj' | head -n1)
+          VERSION=$(grep -oPm1 '(?<=<Version>)[^<]+' "$CSproj" || true)
+          VERSION=${VERSION:-0.0.0+${GITHUB_RUN_NUMBER}}
+
+          PKGROOT=pkgroot
+          rm -rf "$PKGROOT" out/pkg
+          mkdir -p "$PKGROOT/DEBIAN" "$PKGROOT/usr/bin" out/pkg
+
+          install -m0755 "$BIN" "$PKGROOT/usr/bin/$APP"
+          SIZE=$(du -ks "$PKGROOT/usr" | cut -f1)
+
+          cat >"$PKGROOT/DEBIAN/control" <<EOF
+          Package: $APP
+          Version: $VERSION
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: Damien Sawyer <demo@example.com>
+          Description: Demo CLI
+          Installed-Size: $SIZE
+          EOF
+
+          dpkg-deb --build --root-owner-group "$PKGROOT" "out/pkg/${APP}_${VERSION}_amd64.deb"
+          ls -lh out/pkg
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: out/pkg/*_amd64.deb
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Install repo tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev xz-utils apt-utils
+
+      - name: Reset dists/ and layout + .nojekyll
+        run: |
+          rm -rf dists
+          mkdir -p dists/stable/main/binary-amd64
+          mkdir -p pool/main/d/${{ env.APP_NAME }}
+          rm -f dists/stable/InRelease dists/stable/Release.gpg || true
+          touch .nojekyll
+
+      - name: Download .deb artifact from build
+        uses: actions/download-artifact@v4
+        with:
+          name: deb
+          path: incoming
+
+      - name: Copy into pool/ (keep 5 newest)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp incoming/*_amd64.deb "pool/main/d/${{ env.APP_NAME }}/"
+          ls -t "pool/main/d/${{ env.APP_NAME }}"/*.deb | awk 'NR>5' | xargs -r rm -f
+          ls -lh "pool/main/d/${{ env.APP_NAME }}/"
+
+      - name: Build Packages indexes (run from repo root)
+        run: |
+          dpkg-scanpackages -m pool /dev/null > dists/stable/main/binary-amd64/Packages
+          gzip -f -9 dists/stable/main/binary-amd64/Packages
+          xz   -f    dists/stable/main/binary-amd64/Packages
+
+      - name: Build Release (references main/binary-amd64/*)
+        run: |
+          cat > release.conf <<'EOF'
+          APT::FTPArchive::Release::Suite "stable";
+          APT::FTPArchive::Release::Codename "stable";
+          APT::FTPArchive::Release::Components "main";
+          APT::FTPArchive::Release::Architectures "amd64";
+          EOF
+          apt-ftparchive -c=release.conf release dists/stable > dists/stable/Release
+          echo "=== Sanity ==="
+          grep -E '^(Components:|Architectures:)| main/binary-amd64/Packages' dists/stable/Release
+
+      - name: Commit & push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Publish APT repo"
+          branch: gh-pages
+          file_pattern: |
+            dists/**
+            pool/**
+            .nojekyll

@@ -1,16 +1,17 @@
 name: Build and Package
-
 on:
-  push:
-    branches: [main]
+  push: { branches: [main] }
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: { contents: read }
 
 concurrency:
-  group: build-${{ github.ref }}
+  group: build-${{ github.sha }}
   cancel-in-progress: true
+
+env:
+  # Optional: hard-set if you prefer. Example: src/DemoDebCli/DemoDebCli.csproj
+  PROJECT_FILE: ""
 
 jobs:
   build:
@@ -23,22 +24,40 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
+      - name: Detect project/solution
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$PROJECT_FILE" ]]; then
+            echo "file=$PROJECT_FILE" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          mapfile -t slns < <(git ls-files '*.sln')
+          if (( ${#slns[@]} == 1 )); then
+            echo "file=${slns[0]}" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          mapfile -t projs < <(git ls-files '**/*.csproj' '*.csproj')
+          if (( ${#projs[@]} == 1 )); then
+            echo "file=${projs[0]}" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "Found ${#slns[@]} .sln and ${#projs[@]} .csproj files." >&2
+          echo "Set env PROJECT_FILE to the path of the one you want." >&2
+          exit 1
+
       - name: Restore & Publish (AOT, linux-x64)
         run: |
-          dotnet restore
-          dotnet publish -c Release -r linux-x64 /p:PublishAot=true /p:SelfContained=true -o out/publish
+          dotnet restore "${{ steps.detect.outputs.file }}"
+          dotnet publish "${{ steps.detect.outputs.file }}" -c Release -r linux-x64 \
+            /p:PublishAot=true /p:SelfContained=true -o out/publish
 
-      # 👇 YOUR packaging step; ensure a .deb appears under out/pkg/
-      # If you already have a script, call it here and leave the mv below.
+      # TODO: replace with your real packaging step; ensure a *_amd64.deb ends in out/pkg/
       - name: Package .deb (placeholder)
         run: |
           mkdir -p out/pkg
-          # build your deb here (dpkg-deb / fpm / your script) to out/pkg/
-          # ensure filename contains _amd64.deb
-          # e.g.: out/pkg/demodebcli_1.0.99_amd64.deb
+          # build your .deb here (dpkg-deb/fpm/etc.) -> out/pkg/demodebcli_<ver>_amd64.deb
           test -f out/pkg/*_amd64.deb
 
-      - name: Upload .deb as artifact
+      - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: deb

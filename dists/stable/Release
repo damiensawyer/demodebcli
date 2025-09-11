@@ -1,21 +1,25 @@
-Origin: demodebcli
-Label: demodebcli
-Suite: stable
-Codename: stable
-Version: 1.0
 Architectures: amd64
+Codename: stable
 Components: main
-Description: Demo CLI Package Repository
-Date: Thu, 11 Sep 2025 02:14:43 +0000
+Date: Thu, 11 Sep 2025 05:52:16 +0000
+Suite: stable
 MD5Sum:
- 4f57017ffbf69814a83d4667801e416b 556 binary-amd64/Packages.xz
- e71a629dec98beacf0c234ba0583ade9 686 binary-amd64/Packages
- fb46844059957167548aea7eaf25dde5 481 binary-amd64/Packages.gz
+ bedcbed40c3b4731137e00ce7947c072              107 Release
+ 1b44f7be4b46f98bb851426493c48491             3100 main/binary-amd64/Packages
+ 330037ddae020e2cef3cc86c41671909              942 main/binary-amd64/Packages.gz
+ 9d002a0877c192a5525695c57c09f9f7              972 main/binary-amd64/Packages.xz
 SHA1:
- 16af52819ee3b4b94abf9fb8a634c8f9708482e4 556 binary-amd64/Packages.xz
- 84b6ff1ec04d97af3203826c476c07b65cb7879d 686 binary-amd64/Packages
- a5b986347ac85c7cdac55e89bb9166816b82d38b 481 binary-amd64/Packages.gz
+ dfc38d0ed6e4da56118b6175c842212e61553fbc              107 Release
+ fd0d7acdc521aab00ee11e2aeccd472cc7623cdb             3100 main/binary-amd64/Packages
+ 2ca28d33ce2af889ec20416ccbd2cd44c599900a              942 main/binary-amd64/Packages.gz
+ 8ba060be42e2f89f3f9966039de559b982c413a1              972 main/binary-amd64/Packages.xz
 SHA256:
- 1b9857445010d809cab0728ed83a346c9a1cab0b1cb6088b956eea3cc9ae26f4 556 binary-amd64/Packages.xz
- abe4c4e95a11a0676b471f325f4df50f3863fd942fe120bd5303cd238f4ee957 686 binary-amd64/Packages
- 988d66cba7ea967113d0315225faa86ceb9809e0ce339574529e2bee06fefd49 481 binary-amd64/Packages.gz
+ 48311c3ed6a0d16d61f90b84dc0ff0d603f42a535d52b6aa3a94c368a8d3dc55              107 Release
+ 408a3a96842864f562ff1fc972aba125cae87347511932d7873bc6a5125d0d5d             3100 main/binary-amd64/Packages
+ 8298333cf40c2c5e0963de745203020bc6753e3181ae3e49468dd2d891da9b2c              942 main/binary-amd64/Packages.gz
+ 92c5e9b0fadc5007723c774aaaad3e541917dfb5ff300b543585d18ec57de415              972 main/binary-amd64/Packages.xz
+SHA512:
+ 6ab9905f6474617932e64621d6432c26e8a9da70bc7c49dc00cdcd0cb21bc43a80224909cf5daeae03613cef2f019d90cc4b2ed6b0f56fa192c5072f451da164              107 Release
+ 7230969ada3fd47fb75616f161971204455e0421959ae075ee2f781f786c7901b77931193e9d632202e4534620fb14e976b710e3780babb0d3e626b544fd0e71             3100 main/binary-amd64/Packages
+ 8ed265cae0320ac869e5f2f3e704040b4fae40f5dbb02583715c79264a6d2c2327d16a7fa283bcc694149a2b3ccada7713e4954182e34eef07933cad86279c88              942 main/binary-amd64/Packages.gz
+ 2180f7ac2b887ee47dde4f69069d8dc03051d226bab237217aad3efe8502fc38cfe24e681e6e68e67709cb0df5f08933365e075ba891f3e325236b92706d4848              972 main/binary-amd64/Packages.xz

@@ -1,0 +1,158 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_NAME: demodebcli
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Calculate version
+        id: version
+        run: |
+          BUILD_NUMBER=$(($(git rev-list --count HEAD) + 100))
+          VERSION="1.1.${BUILD_NUMBER}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Build and publish
+        run: |
+          dotnet publish demodebcli.csproj -c Release -r linux-x64 \
+            /p:PublishAot=true /p:SelfContained=true \
+            /p:Version=${{ steps.version.outputs.VERSION }} \
+            -o out/publish
+
+      - name: Create .deb package
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          PKGROOT=pkgroot
+          
+          rm -rf "$PKGROOT" out/pkg
+          mkdir -p "$PKGROOT/DEBIAN" "$PKGROOT/usr/bin" out/pkg
+          
+          install -m0755 "out/publish/$APP_NAME" "$PKGROOT/usr/bin/$APP_NAME"
+          SIZE=$(du -ks "$PKGROOT/usr" | cut -f1)
+          
+          cat > "$PKGROOT/DEBIAN/control" << EOF
+          Package: $APP_NAME
+          Version: $VERSION
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: Damien Sawyer <damien@example.com>
+          Depends: libc6 (>= 2.17)
+          Description: Demo CLI application
+           A demonstration command-line application written in C# and compiled
+           with AOT (Ahead of Time) compilation for optimal performance.
+           .
+           This package installs the demodebcli command which prints "Hello, World!"
+           and provides version information.
+          Installed-Size: $SIZE
+          EOF
+          
+          dpkg-deb --build --root-owner-group "$PKGROOT" "out/pkg/${APP_NAME}_${VERSION}_amd64.deb"
+
+      - name: Setup gh-pages worktree
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git worktree add gh-pages-temp gh-pages
+
+      - name: Create APT repository
+        run: |
+          cd gh-pages-temp
+          
+          # Clean everything
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          
+          # Create structure
+          mkdir -p dists/stable/main/binary-amd64
+          mkdir -p pool/main/d/$APP_NAME
+          
+          # Copy new package
+          cp ../out/pkg/*.deb "pool/main/d/$APP_NAME/"
+          
+          # Create Packages file
+          dpkg-scanpackages -m pool /dev/null > dists/stable/main/binary-amd64/Packages
+          gzip -f -9 -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
+          xz -f -c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.xz
+          
+          # Create Release file
+          cat > release.conf << EOF
+          APT::FTPArchive::Release::Suite "stable";
+          APT::FTPArchive::Release::Codename "stable";
+          APT::FTPArchive::Release::Components "main";
+          APT::FTPArchive::Release::Architectures "amd64";
+          EOF
+          
+          apt-ftparchive -c=release.conf release dists/stable > dists/stable/Release
+          
+          # Create web files
+          touch .nojekyll
+          
+          cat > index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>demodebcli APT Repository</title>
+              <style>body { font-family: Arial, sans-serif; margin: 40px; } pre { background: #f4f4f4; padding: 15px; border-radius: 5px; }</style>
+          </head>
+          <body>
+              <h1>demodebcli APT Repository</h1>
+              <h2>Installation</h2>
+              <pre>curl -fsSL https://damiensawyer.github.io/demodebcli/install.sh | bash && sudo apt install demodebcli</pre>
+              <h2>Manual Setup</h2>
+              <pre>echo "deb [trusted=yes] https://damiensawyer.github.io/demodebcli stable main" | sudo tee /etc/apt/sources.list.d/demodebcli.list
+          sudo apt update
+          sudo apt install demodebcli</pre>
+          </body>
+          </html>
+          EOF
+          
+          cat > install.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          echo "Adding demodebcli repository..."
+          echo "deb [trusted=yes] https://damiensawyer.github.io/demodebcli stable main" | sudo tee /etc/apt/sources.list.d/demodebcli.list
+          sudo apt update
+          echo "Repository added! Install with: sudo apt install demodebcli"
+          EOF
+          
+          chmod +x install.sh
+
+      - name: Install APT tools and commit
+        run: |
+          sudo apt-get update && sudo apt-get install -y apt-utils
+          cd gh-pages-temp
+          git add .
+          git commit -m "Deploy ${{ env.APP_NAME }} v${{ steps.version.outputs.VERSION }}"
+          git push origin gh-pages
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: Release v${{ steps.version.outputs.VERSION }}
+          files: out/pkg/*.deb
+          generate_release_notes: true

@@ -1,0 +1,148 @@
+name: Update APT Repository
+
+on:
+  workflow_run:
+    workflows: ["Build and Package"]
+    types:
+      - completed
+    branches: [main]
+
+jobs:
+  update-repository:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: gh-pages
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup repository structure
+      run: |
+        mkdir -p dists/stable/main/binary-amd64
+        mkdir -p pool/main/d/demodebcli
+
+    - name: Download latest release
+      run: |
+        # Get the latest release
+        LATEST_RELEASE=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
+        VERSION=${LATEST_RELEASE#v}
+        
+        # Download the deb package
+        wget "https://github.com/${{ github.repository }}/releases/download/${LATEST_RELEASE}/demodebcli_${VERSION}_amd64.deb" \
+          -O "pool/main/d/demodebcli/demodebcli_${VERSION}_amd64.deb"
+
+    - name: Generate Packages file
+      run: |
+        cd dists/stable/main/binary-amd64
+        dpkg-scanpackages ../../../../pool/main > Packages
+        gzip -c Packages > Packages.gz
+
+    - name: Generate Release file
+      run: |
+        cd dists/stable
+        cat > Release << EOF
+        Archive: stable
+        Component: main
+        Origin: demodebcli
+        Label: demodebcli
+        Architecture: amd64
+        Description: Demo CLI Package Repository
+        Date: $(date -Ru)
+        EOF
+        
+        # Add file hashes
+        echo "MD5Sum:" >> Release
+        find main -type f -exec md5sum {} \; | sed 's|main/| |' >> Release
+        echo "SHA1:" >> Release
+        find main -type f -exec sha1sum {} \; | sed 's|main/| |' >> Release
+        echo "SHA256:" >> Release
+        find main -type f -exec sha256sum {} \; | sed 's|main/| |' >> Release
+
+    - name: Create repository configuration
+      run: |
+        cat > demodebcli.list << 'EOF'
+        deb [trusted=yes] https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }} stable main
+        EOF
+
+    - name: Create installation script
+      run: |
+        cat > install.sh << 'EOF'
+        #!/bin/bash
+        set -e
+
+        echo "Adding demodebcli repository..."
+        
+        # Add repository
+        echo "deb [trusted=yes] https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }} stable main" | sudo tee /etc/apt/sources.list.d/demodebcli.list
+
+        # Update package list
+        sudo apt update
+
+        echo "Repository added successfully!"
+        echo "You can now install demodebcli with: sudo apt install demodebcli"
+        EOF
+        chmod +x install.sh
+
+    - name: Create index page
+      run: |
+        cat > index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>demodebcli APT Repository</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .code { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+                pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+            </style>
+        </head>
+        <body>
+            <h1>demodebcli APT Repository</h1>
+            
+            <h2>Quick Installation</h2>
+            <p>Run this command to add the repository and install demodebcli:</p>
+            <pre>curl -fsSL https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/install.sh | bash && sudo apt install demodebcli</pre>
+            
+            <h2>Manual Installation</h2>
+            
+            <h3>1. Add the repository</h3>
+            <pre>echo "deb [trusted=yes] https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }} stable main" | sudo tee /etc/apt/sources.list.d/demodebcli.list</pre>
+            
+            <h3>2. Update package list</h3>
+            <pre>sudo apt update</pre>
+            
+            <h3>3. Install demodebcli</h3>
+            <pre>sudo apt install demodebcli</pre>
+            
+            <h2>Usage</h2>
+            <pre>demodebcli              # Print Hello, World!
+        demodebcli --version    # Show version info
+        man demodebcli          # View manual page</pre>
+            
+            <h2>Uninstallation</h2>
+            <pre>sudo apt remove demodebcli
+        sudo rm /etc/apt/sources.list.d/demodebcli.list
+        sudo apt update</pre>
+            
+            <p>Repository automatically updated from <a href="https://github.com/${{ github.repository }}">GitHub</a></p>
+        </body>
+        </html>
+        EOF
+
+    - name: Deploy to GitHub Pages
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add .
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update repository $(date)"
+          git push
+        fi

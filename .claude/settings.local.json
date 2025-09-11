@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet --version)",
+      "Bash(dotnet new:*)",
+      "Bash(mv:*)",
+      "Bash(rmdir:*)",
+      "Bash(rm:*)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet publish:*)",
+      "Bash(./bin/Release/net9.0/linux-x64/publish/demodebcli)",
+      "Bash(./bin/Release/net9.0/linux-x64/publish/demodebcli:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

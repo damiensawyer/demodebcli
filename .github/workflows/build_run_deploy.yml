@@ -14,7 +14,7 @@ concurrency:
 env:
   # If you have multiple projects, set this to the .csproj or .sln you want.
   # Example: src/DemoCli/DemoCli.csproj
-  PROJECT_FILE: "main.sln"
+  PROJECT_FILE: "demodebcli.csproj"
   APP_NAME: demodebcli
 
 jobs:

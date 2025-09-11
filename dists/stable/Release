@@ -1,16 +1,18 @@
-Archive: stable
-Component: main
 Origin: demodebcli
 Label: demodebcli
-Architecture: amd64
+Suite: stable
+Codename: stable
+Version: 1.0
+Architectures: amd64
+Components: main
 Description: Demo CLI Package Repository
-Date: Thu, 11 Sep 2025 01:36:35 +0000
+Date: Thu, 11 Sep 2025 01:41:46 +0000
 MD5Sum:
-d7d5f1c69dbc0e2897df7c3ed2f62f95   binary-amd64/Packages
-b0de4f7d7434637a750d3ec2c3adf836   binary-amd64/Packages.gz
+3070da983a3356d27be16860c24d7668   binary-amd64/Packages
+2883b29dee50cac6cb93a764adb10d26   binary-amd64/Packages.gz
 SHA1:
-2be89c4852031b15e7ca2d14811507ed053fb71a   binary-amd64/Packages
-0ae8250d3c894ea0857d5f821fd3cce35287bd9f   binary-amd64/Packages.gz
+26f1624bc3031d640c54f0e659b3db054c1ddfbb   binary-amd64/Packages
+160f6127d3bab1df7850f1d952b7a397f8991fa3   binary-amd64/Packages.gz
 SHA256:
-7da517ed8ed1fe6ebab2ce8f77adac4d8cc2702bea9d0a424ed381feae3bc7c7   binary-amd64/Packages
-7b8ff7e6e0202cb5b8183b6326c11a5b7c3438f270f78dfbc064f649dedd1cc1   binary-amd64/Packages.gz
+66ab63e1c9d09bade244059488215854a8f3d7e406cb8e45fae802bffc0ef34d   binary-amd64/Packages
+534cd9a004286df32f2665a6fbacdca25aff5f917f12c526945d4fa24f436964   binary-amd64/Packages.gz

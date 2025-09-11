@@ -1,0 +1,19 @@
+Package: demodebcli
+Version: 1.0.2
+Architecture: amd64
+Maintainer: Demo Package <demo@example.com>
+Depends: libc6 (>= 2.17)
+Filename: ../../../../pool/main/d/demodebcli/demodebcli_1.0.2_amd64.deb
+Size: 993866
+MD5sum: 242560060aa0bd1a610a3740bd46d253
+SHA1: 9d67bad246191fee4e7897970338eddb78fd6db6
+SHA256: 839bfbb6e3bdbcc208d61c3c71bac81beaa62d6f31a0ab4102238286e2d0ed78
+Section: utils
+Priority: optional
+Description: Demo CLI application
+ A demonstration command-line application written in C# and compiled
+ with AOT (Ahead of Time) compilation for optimal performance.
+ .
+ This package installs the demodebcli command which prints "Hello, World!"
+ and provides version information.
+

@@ -6,16 +6,16 @@ Version: 1.0
 Architectures: amd64
 Components: main
 Description: Demo CLI Package Repository
-Date: Thu, 11 Sep 2025 02:06:48 +0000
+Date: Thu, 11 Sep 2025 02:13:58 +0000
 MD5Sum:
- 272ba95dd9dd1ee3057b6818d73a1845 556 binary-amd64/Packages.xz
- ffd32467e366b97f1fc4bf86084e75a7 684 binary-amd64/Packages
- 9020e4b7cccc4ee4f034e5e190ffca45 482 binary-amd64/Packages.gz
+ 1ec7d1755e4f195bacbb8823370a73d1 552 binary-amd64/Packages.xz
+ faf32520f2a9c5c0aff7438ca3ce3694 684 binary-amd64/Packages
+ d141e11be86c137b5c6991322a119c4b 482 binary-amd64/Packages.gz
 SHA1:
- dc8f3a9d66ff3982e793fd8515ba5c4b8569dd0f 556 binary-amd64/Packages.xz
- 78624c61bc6dd4ac660342680c6ee4aae500d1fd 684 binary-amd64/Packages
- ed8fd782e99f3ed8c6be6bf5584f837d083b825a 482 binary-amd64/Packages.gz
+ edb3b16dfa602a0b0ba68b97d8a92242423a698c 552 binary-amd64/Packages.xz
+ b7865bf3e281db9bffb14b8966aed846d107ca5f 684 binary-amd64/Packages
+ 2af1ead4ed7f148e5da408964f614c8a9a73d1ae 482 binary-amd64/Packages.gz
 SHA256:
- e1b04cdf73f934e4d250c4fc15e07b3c5776b333d3afc66b30856583a829fcb8 556 binary-amd64/Packages.xz
- d1e51621abadba23cb9cd1578c2b60e39e4b1671a66282761b5230203e1d2ff5 684 binary-amd64/Packages
- 573d51c86daf07bcafee0ee8770a2ce0776dea6322ba3c05358c5065cc2f3396 482 binary-amd64/Packages.gz
+ 16beb4c1f0c4cfb8cde2f0dad0996b2abe11831569d03b23eb717cb3be5e489d 552 binary-amd64/Packages.xz
+ be415bacb6572acbea3b4ab8298c7afb0dc76bbdd0fb5872d7b2b65d108d983c 684 binary-amd64/Packages
+ ff3e5ed152dd42f6be8460f4814ee4f205a35d8ad4ff8d4dcdac5c4705c436db 482 binary-amd64/Packages.gz

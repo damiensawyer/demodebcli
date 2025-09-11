@@ -1,9 +1,7 @@
 name: Publish APT repo
-
 on:
   release: { types: [published] }
   workflow_dispatch:
-
 permissions: { contents: write }
 
 jobs:
@@ -12,9 +10,7 @@ jobs:
     steps:
       - name: Checkout gh-pages
         uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          fetch-depth: 0
+        with: { ref: gh-pages, fetch-depth: 0 }
 
       - name: Tools
         run: |
@@ -23,18 +19,17 @@ jobs:
           sudo apt-get install -y dpkg-dev xz-utils jq apt-utils
           sudo snap install gh || true
 
-      # Clean EVERYTHING under dists to avoid stale Release contents
-      - name: Reset dists/ and ensure layout + disable Jekyll
+      - name: Reset dists/ and layout + .nojekyll
         run: |
           set -euo pipefail
           rm -rf dists
           mkdir -p dists/stable/main/binary-amd64
           mkdir -p pool/main/d/demodebcli
-          # remove any stray signed metadata from previous attempts
           rm -f dists/stable/InRelease dists/stable/Release.gpg || true
           touch .nojekyll
+          pwd; tree -a -I '.git' -L 3 || true
 
-      - name: Download latest release .deb
+      - name: Download latest .deb from Releases
         env: { GH_TOKEN: ${{ github.token }} }
         run: |
           set -euo pipefail
@@ -44,14 +39,15 @@ jobs:
           cp incoming/demodebcli_*_amd64.deb pool/main/d/demodebcli/
           ls -l pool/main/d/demodebcli/
 
-      - name: Build Packages (paths must start with pool/)
+      - name: Build Packages
         run: |
           set -euo pipefail
+          # run from repo ROOT so dpkg-scanpackages emits paths starting with pool/
           dpkg-scanpackages -m pool /dev/null > dists/stable/main/binary-amd64/Packages
           gzip -f -9 dists/stable/main/binary-amd64/Packages
           xz   -f    dists/stable/main/binary-amd64/Packages
 
-      - name: Build Release (unsigned; fine with [trusted=yes])
+      - name: Build Release (must reference main/binary-amd64)
         run: |
           set -euo pipefail
           cat > release.conf <<'EOF'
@@ -60,10 +56,10 @@ jobs:
           APT::FTPArchive::Release::Components "main";
           APT::FTPArchive::Release::Architectures "amd64";
           EOF
-          # IMPORTANT: release target is dists/stable (NOT dists/stable/main)
+          # CRITICAL: target dists/stable FROM REPO ROOT (do NOT cd into dists/stable/main)
           apt-ftparchive -c=release.conf release dists/stable > dists/stable/Release
-          echo "=== Sanity ==="
-          grep -E '^(Components:|Architectures:)| main/binary-amd64/Packages' dists/stable/Release || true
+          echo "=== Release sanity ==="
+          grep -E '^(Components:|Architectures:)| main/binary-amd64/Packages' dists/stable/Release
 
       - name: Commit & push
         uses: stefanzweifel/git-auto-commit-action@v5

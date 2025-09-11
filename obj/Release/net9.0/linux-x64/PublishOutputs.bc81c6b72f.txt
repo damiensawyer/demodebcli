@@ -1,1 +1,0 @@
-/home/damien/code/demodebcli/bin/Release/net9.0/linux-x64/publish/demodebcli

@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: read   # required to download artifacts from the triggering run
 
 concurrency:
   group: apt-repo-${{ github.event.workflow_run.id || 'manual' }}
@@ -15,11 +16,13 @@ concurrency:
 
 jobs:
   publish:
+    # Only when the build succeeded on 'main', or manual
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout gh-pages
         uses: actions/checkout@v4
@@ -27,11 +30,10 @@ jobs:
           ref: gh-pages
           fetch-depth: 0
 
-      - name: Tools
+      - name: Install repo tools
         run: |
           sudo apt-get update
           sudo apt-get install -y dpkg-dev xz-utils
-          sudo snap install gh || true
 
       - name: Reset dists/ and layout + .nojekyll
         run: |
@@ -41,20 +43,23 @@ jobs:
           rm -f dists/stable/InRelease dists/stable/Release.gpg || true
           touch .nojekyll
 
-      - name: Download .deb artifact from build
+      - name: Download .deb artifact from Build and Package
         uses: actions/download-artifact@v4
         with:
           name: deb
           path: incoming
-          # available only on workflow_run:
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Copy into pool/
+      - name: Copy into pool
+        shell: bash
         run: |
+          set -euo pipefail
           cp incoming/*_amd64.deb pool/main/d/demodebcli/
-          ls -l pool/main/d/demodebcli/
+          # keep only the 5 most recent .deb files to avoid bloat
+          ls -t pool/main/d/demodebcli/*.deb | awk 'NR>5' | xargs -r rm -f
+          ls -lh pool/main/d/demodebcli/
 
-      - name: Build Packages (must run from repo root)
+      - name: Build Packages indexes (must run from repo root)
         run: |
           dpkg-scanpackages -m pool /dev/null > dists/stable/main/binary-amd64/Packages
           gzip -f -9 dists/stable/main/binary-amd64/Packages

@@ -1,16 +1,19 @@
 name: Build and Package
+
 on:
   push: { branches: [main] }
   workflow_dispatch:
 
-permissions: { contents: read }
+permissions:
+  contents: read
 
 concurrency:
   group: build-${{ github.sha }}
   cancel-in-progress: true
 
 env:
-  # Optional: hard-set if you prefer. Example: src/DemoDebCli/DemoDebCli.csproj
+  # If you have multiple projects, set this to the one you want:
+  # e.g. src/DemoCli/DemoCli.csproj
   PROJECT_FILE: ""
 
 jobs:
@@ -40,22 +43,52 @@ jobs:
           if (( ${#projs[@]} == 1 )); then
             echo "file=${projs[0]}" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          echo "Found ${#slns[@]} .sln and ${#projs[@]} .csproj files." >&2
-          echo "Set env PROJECT_FILE to the path of the one you want." >&2
+          echo "Found ${#slns[@]} .sln and ${#projs[@]} .csproj files."
+          echo "Set env PROJECT_FILE to the one you want." >&2
           exit 1
 
       - name: Restore & Publish (AOT, linux-x64)
+        shell: bash
         run: |
+          set -euo pipefail
           dotnet restore "${{ steps.detect.outputs.file }}"
           dotnet publish "${{ steps.detect.outputs.file }}" -c Release -r linux-x64 \
             /p:PublishAot=true /p:SelfContained=true -o out/publish
 
-      # TODO: replace with your real packaging step; ensure a *_amd64.deb ends in out/pkg/
-      - name: Package .deb (placeholder)
+      - name: Package .deb
+        shell: bash
         run: |
-          mkdir -p out/pkg
-          # build your .deb here (dpkg-deb/fpm/etc.) -> out/pkg/demodebcli_<ver>_amd64.deb
-          test -f out/pkg/*_amd64.deb
+          set -euo pipefail
+          APP=demodebcli
+          # Locate the published binary (expect a single-file AOT; adjust if needed)
+          BIN="out/publish/$APP"
+          test -x "$BIN" || { echo "Published binary not found at $BIN"; ls -l out/publish; exit 1; }
+
+          # Version from first csproj <Version> (fallback to 0.0.0+<run>)
+          CSproj=$(git ls-files '**/*.csproj' '*.csproj' | head -n1)
+          VERSION=$(grep -oPm1 '(?<=<Version>)[^<]+' "$CSproj" || true)
+          VERSION=${VERSION:-0.0.0+${GITHUB_RUN_NUMBER}}
+
+          PKGROOT=pkgroot
+          rm -rf "$PKGROOT" out/pkg
+          mkdir -p "$PKGROOT/DEBIAN" "$PKGROOT/usr/bin" out/pkg
+
+          install -m0755 "$BIN" "$PKGROOT/usr/bin/$APP"
+
+          SIZE=$(du -ks "$PKGROOT/usr" | cut -f1)
+          cat >"$PKGROOT/DEBIAN/control" <<EOF
+          Package: $APP
+          Version: $VERSION
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: Damien Sawyer <demo@example.com>
+          Description: Demo CLI
+          Installed-Size: $SIZE
+          EOF
+
+          dpkg-deb --build --root-owner-group "$PKGROOT" "out/pkg/${APP}_${VERSION}_amd64.deb"
+          ls -lh out/pkg
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4

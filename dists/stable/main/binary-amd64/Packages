@@ -4,10 +4,10 @@ Architecture: amd64
 Maintainer: Damien Sawyer <demo@example.com>
 Installed-Size: 2432
 Filename: pool/main/d/demodebcli/demodebcli_1.0.0_amd64.deb
-Size: 993136
-MD5sum: a42caada4e97b73034c5991ee69e7d3e
-SHA1: a063da1dedbf5d8a66b335b72a8a939f497a8db1
-SHA256: 68c7054ff87ce42ab6e1e1337db99d54573ef29d33c3fca8396c2d26a7597350
+Size: 993092
+MD5sum: c9b67312b51849f1210c3cc1e897d0ec
+SHA1: e88eb02df94f8c007e9a740c18588ff8e560dccb
+SHA256: 984773ea0fdca5ca1e1f4c2fc43c97f12ebde79cba478d1080815fff04bd3142
 Section: utils
 Priority: optional
 Description: Demo CLI

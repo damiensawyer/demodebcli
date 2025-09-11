@@ -58,13 +58,18 @@ jobs:
         Date: $(date -Ru)
         EOF
         
-        # Add file hashes
+        # Add file hashes with proper formatting
         echo "MD5Sum:" >> Release
-        find main -type f -exec md5sum {} \; | sed 's|main/| |' >> Release
+        find main -type f -printf " %s %P\n" -exec md5sum {} \; | \
+          awk '{if(NR%2==1) {size=$1; path=$2} else {print " " $1 " " size " " path}}' >> Release
+        
         echo "SHA1:" >> Release
-        find main -type f -exec sha1sum {} \; | sed 's|main/| |' >> Release
+        find main -type f -printf " %s %P\n" -exec sha1sum {} \; | \
+          awk '{if(NR%2==1) {size=$1; path=$2} else {print " " $1 " " size " " path}}' >> Release
+        
         echo "SHA256:" >> Release
-        find main -type f -exec sha256sum {} \; | sed 's|main/| |' >> Release
+        find main -type f -printf " %s %P\n" -exec sha256sum {} \; | \
+          awk '{if(NR%2==1) {size=$1; path=$2} else {print " " $1 " " size " " path}}' >> Release
 
     - name: Create repository configuration
       run: |

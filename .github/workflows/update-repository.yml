@@ -1,12 +1,9 @@
 name: Publish APT repo
-
 on:
-  release:
-    types: [published]     # run when you publish a GitHub Release
-  workflow_dispatch:       # or run manually
+  release: { types: [published] }
+  workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: { contents: write }
 
 jobs:
   publish:
@@ -18,60 +15,46 @@ jobs:
           ref: gh-pages
           fetch-depth: 0
 
-      - name: Install repo tools
+      - name: Install tools
         run: |
+          set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y dpkg-dev apt-utils jq xz-utils
-          # gh usually preinstalled on ubuntu-latest; keep this harmless:
           sudo snap install gh || true
-          gh --version || true
 
-      - name: Prepare layout and disable Jekyll
+      - name: Ensure layout (clean stale dists) + disable Jekyll
         run: |
-          mkdir -p pool/main/d/demodebcli
+          set -euo pipefail
+          # start from a clean dists tree so Release paths are correct
+          rm -rf dists
           mkdir -p dists/stable/main/binary-amd64
+          mkdir -p pool/main/d/demodebcli
           touch .nojekyll
 
       - name: Download latest release .deb
-        env:
-          GH_TOKEN: ${{ github.token }}
+        env: { GH_TOKEN: ${{ github.token }} }
         run: |
+          set -euo pipefail
           mkdir -p incoming
-          # matches your release asset naming: demodebcli_1.0.X_amd64.deb
           gh release download --repo "$GITHUB_REPOSITORY" \
             --pattern 'demodebcli_*_amd64.deb' --dir incoming --clobber
-          ls -l incoming
-
-      - name: Copy into pool/
-        run: |
           cp incoming/demodebcli_*_amd64.deb pool/main/d/demodebcli/
-          find pool -type f -name '*.deb' -print
+          ls -l pool/main/d/demodebcli/
 
-      - name: Build Packages (from repo root so paths start with pool/)
+      - name: Build Packages (under main/binary-amd64)
         run: |
+          set -euo pipefail
           dpkg-scanpackages -m pool /dev/null > dists/stable/main/binary-amd64/Packages
           gzip -f -9 dists/stable/main/binary-amd64/Packages
           xz   -f    dists/stable/main/binary-amd64/Packages
 
-      - name: Build Release (unsigned; fine with [trusted=yes])
+      - name: Build Release (unsigned; ok with [trusted=yes])
         run: |
+          set -euo pipefail
           cat > release.conf <<'EOF'
           APT::FTPArchive::Release::Suite "stable";
           APT::FTPArchive::Release::Codename "stable";
           APT::FTPArchive::Release::Components "main";
           APT::FTPArchive::Release::Architectures "amd64";
           EOF
-          # IMPORTANT: run from repo root and target dists/stable,
-          # so entries include 'main/binary-amd64/...'
-          apt-ftparchive -c=release.conf release dists/stable > dists/stable/Release
-          sed -n '1,25p' dists/stable/Release
-
-      - name: Commit & push
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Publish APT repo"
-          branch: gh-pages
-          file_pattern: |
-            dists/**
-            pool/**
-            .nojekyll
+          # run from repo root; target dists/stable so entries i

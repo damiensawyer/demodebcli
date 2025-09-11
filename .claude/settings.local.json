@@ -10,7 +10,21 @@
       "Bash(dotnet publish:*)",
       "Bash(./bin/Release/net9.0/linux-x64/publish/demodebcli)",
       "Bash(./bin/Release/net9.0/linux-x64/publish/demodebcli:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(curl:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh run list:*)",
+      "Bash(sudo apt:*)",
+      "Bash(apt list:*)",
+      "Bash(sudo rm:*)",
+      "WebFetch(domain:damiensawyer.github.io)",
+      "Read(//etc/apt/sources.list.d/**)",
+      "Bash(bash)",
+      "Read(//var/lib/apt/lists/**)",
+      "Bash(apt-cache policy:*)",
+      "Bash(apt-get:*)"
     ],
     "deny": [],
     "ask": []

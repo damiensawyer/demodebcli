@@ -1,64 +1,75 @@
 name: Publish APT repo
+
 on:
-  release: { types: [published] }
+  workflow_run:
+    workflows: ["Build and Package"]
+    types: [completed]
   workflow_dispatch:
-permissions: { contents: write }
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apt-repo-${{ github.event.workflow_run.id || 'manual' }}
+  cancel-in-progress: true
 
 jobs:
   publish:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout gh-pages
         uses: actions/checkout@v4
-        with: { ref: gh-pages, fetch-depth: 0 }
+        with:
+          ref: gh-pages
+          fetch-depth: 0
 
       - name: Tools
         run: |
-          set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y dpkg-dev xz-utils jq apt-utils
+          sudo apt-get install -y dpkg-dev xz-utils
           sudo snap install gh || true
 
       - name: Reset dists/ and layout + .nojekyll
         run: |
-          set -euo pipefail
           rm -rf dists
           mkdir -p dists/stable/main/binary-amd64
           mkdir -p pool/main/d/demodebcli
           rm -f dists/stable/InRelease dists/stable/Release.gpg || true
           touch .nojekyll
-          pwd; tree -a -I '.git' -L 3 || true
 
-      - name: Download latest .deb from Releases
-        env: { GH_TOKEN: ${{ github.token }} }
+      - name: Download .deb artifact from build
+        uses: actions/download-artifact@v4
+        with:
+          name: deb
+          path: incoming
+          # available only on workflow_run:
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Copy into pool/
         run: |
-          set -euo pipefail
-          mkdir -p incoming
-          gh release download --repo "$GITHUB_REPOSITORY" \
-            --pattern 'demodebcli_*_amd64.deb' --dir incoming --clobber
-          cp incoming/demodebcli_*_amd64.deb pool/main/d/demodebcli/
+          cp incoming/*_amd64.deb pool/main/d/demodebcli/
           ls -l pool/main/d/demodebcli/
 
-      - name: Build Packages
+      - name: Build Packages (must run from repo root)
         run: |
-          set -euo pipefail
-          # run from repo ROOT so dpkg-scanpackages emits paths starting with pool/
           dpkg-scanpackages -m pool /dev/null > dists/stable/main/binary-amd64/Packages
           gzip -f -9 dists/stable/main/binary-amd64/Packages
           xz   -f    dists/stable/main/binary-amd64/Packages
 
-      - name: Build Release (must reference main/binary-amd64)
+      - name: Build Release (references main/binary-amd64/*)
         run: |
-          set -euo pipefail
           cat > release.conf <<'EOF'
           APT::FTPArchive::Release::Suite "stable";
           APT::FTPArchive::Release::Codename "stable";
           APT::FTPArchive::Release::Components "main";
           APT::FTPArchive::Release::Architectures "amd64";
           EOF
-          # CRITICAL: target dists/stable FROM REPO ROOT (do NOT cd into dists/stable/main)
           apt-ftparchive -c=release.conf release dists/stable > dists/stable/Release
-          echo "=== Release sanity ==="
+          echo "=== Sanity ==="
           grep -E '^(Components:|Architectures:)| main/binary-amd64/Packages' dists/stable/Release
 
       - name: Commit & push

@@ -40,18 +40,20 @@ jobs:
     - name: Generate Packages file
       run: |
         cd dists/stable/main/binary-amd64
-        dpkg-scanpackages ../../../../pool/main > Packages
+        dpkg-scanpackages ../../../../pool/main /dev/null > Packages
         gzip -c Packages > Packages.gz
 
     - name: Generate Release file
       run: |
         cd dists/stable
         cat > Release << EOF
-        Archive: stable
-        Component: main
         Origin: demodebcli
         Label: demodebcli
-        Architecture: amd64
+        Suite: stable
+        Codename: stable
+        Version: 1.0
+        Architectures: amd64
+        Components: main
         Description: Demo CLI Package Repository
         Date: $(date -Ru)
         EOF

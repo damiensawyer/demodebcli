@@ -1,45 +1,40 @@
 ﻿using System.Reflection;
+using NodaTime;
 
 if (args.Length > 0 && (args[0] == "--version" || args[0] == "-v"))
 {
     var assembly = Assembly.GetExecutingAssembly();
     var version = assembly.GetName().Version?.ToString() ?? "Unknown";
-    var buildDate = GetBuildDate(assembly);
+    var buildTimeUtc = GetBuildTimeUtc();
+    var localBuildTime = ConvertUtcToLocalTime(buildTimeUtc);
     
     Console.WriteLine($"demodebcli version {version}");
-    Console.WriteLine($"Built: {buildDate:yyyy-MM-dd HH:mm:ss} UTC");
-    Console.WriteLine($"Local time: {buildDate.ToLocalTime():yyyy-MM-dd HH:mm:ss}");
+    Console.WriteLine($"Built: {buildTimeUtc:yyyy-MM-dd HH:mm:ss} UTC");
+    Console.WriteLine($"Local time: {localBuildTime:yyyy-MM-dd HH:mm:ss}");
 }
 else
 {
     Console.WriteLine("Hello, World - tea time");
 }
 
-static DateTime GetBuildDate(Assembly assembly)
+static DateTime GetBuildTimeUtc()
 {
-    const string BuildVersionMetadataPrefix = "+build";
-    var attribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-    if (attribute?.InformationalVersion != null)
+    // Store build time as a compile-time constant string in UTC
+    const string BuildTimeUtcString = "2025-09-12T01:55:08Z"; // This will be replaced during build
+    
+    if (DateTime.TryParse(BuildTimeUtcString, out var result))
     {
-        var value = attribute.InformationalVersion;
-        var index = value.IndexOf(BuildVersionMetadataPrefix);
-        if (index > 0)
-        {
-            value = value.Substring(index + BuildVersionMetadataPrefix.Length);
-            if (DateTime.TryParse(value, out var result))
-                return result;
-        }
+        return result.ToUniversalTime();
     }
     
-    try
-    {
-        var baseDir = AppContext.BaseDirectory;
-        if (!string.IsNullOrEmpty(baseDir))
-        {
-            return File.GetLastWriteTimeUtc(baseDir);
-        }
-    }
-    catch { }
-    
+    // Fallback to current time if parsing fails
     return DateTime.UtcNow;
+}
+
+static string ConvertUtcToLocalTime(DateTime utcTime)
+{
+    // Use NodaTime to convert UTC to local time
+    var instant = Instant.FromDateTimeUtc(utcTime);
+    var localDateTime = instant.InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault()).LocalDateTime;
+    return localDateTime.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
 }

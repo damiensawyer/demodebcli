@@ -1,14 +1,14 @@
 Package: demodebcli
-Version: 1.1.133
+Version: 1.1.134
 Architecture: amd64
 Maintainer: Damien Sawyer <damien@example.com>
 Installed-Size: 2432
 Depends: libc6 (>= 2.17)
-Filename: pool/main/d/demodebcli/demodebcli_1.1.133_amd64.deb
-Size: 993292
-MD5sum: 6b7c2285d74b423a0e5df1ddd5ad9e8a
-SHA1: 92c48ae922a24c0ad0451d35989ac3d76aeffc6f
-SHA256: 009d12131d2879dc82364a05a7282c8960af3328119bd1b123a63521483fb449
+Filename: pool/main/d/demodebcli/demodebcli_1.1.134_amd64.deb
+Size: 993226
+MD5sum: 63c6fa2cdde545d471e75d17babd94ad
+SHA1: a50905432ffdc7962db5efdc4327dae76ba4c9e9
+SHA256: 859a4ea32f2b3290c1413c22ede7db23399c5cc5f16cdc41888e73516a544033
 Section: utils
 Priority: optional
 Description: Demo CLI application

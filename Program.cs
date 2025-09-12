@@ -12,7 +12,7 @@ if (args.Length > 0 && (args[0] == "--version" || args[0] == "-v"))
 }
 else
 {
-    Console.WriteLine("Hello, World - updated AGAIN!");
+    Console.WriteLine("Hello, World - tea time");
 }
 
 static DateTime GetBuildDate(Assembly assembly)

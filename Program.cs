@@ -1,6 +1,10 @@
 using System.Reflection;
 using Terminal.Gui;
 using Microsoft.Data.Sqlite;
+using SQLitePCL;
+
+// Initialize SQLite for AOT compilation
+Batteries.Init();
 
 if (args.Length > 0)
 {

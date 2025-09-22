@@ -27,7 +27,10 @@
       "Bash(apt-get:*)",
       "Bash(dotnet build)",
       "Bash(dotnet build:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(dpkg:*)",
+      "Bash(./out/test/demodebcli --version)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

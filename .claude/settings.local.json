@@ -30,7 +30,8 @@
       "Bash(dotnet build:*)",
       "Bash(dpkg:*)",
       "Bash(./out/test/demodebcli --version)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(dotnet clean:*)"
     ],
     "deny": [],
     "ask": []

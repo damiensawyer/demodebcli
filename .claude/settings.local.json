@@ -24,7 +24,8 @@
       "Bash(bash)",
       "Read(//var/lib/apt/lists/**)",
       "Bash(apt-cache policy:*)",
-      "Bash(apt-get:*)"
+      "Bash(apt-get:*)",
+      "Bash(dotnet build)"
     ],
     "deny": [],
     "ask": []

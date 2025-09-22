@@ -67,7 +67,7 @@ jobs:
           Priority: optional
           Architecture: amd64
           Maintainer: Damien Sawyer <damien@example.com>
-          Depends: libc6 (>= 2.17)
+          Depends: libc6 (>= 2.17), libsqlite3-0
           Description: Demo CLI application
            A demonstration command-line application written in C# and compiled
            with AOT (Ahead of Time) compilation for optimal performance.

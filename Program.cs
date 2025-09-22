@@ -174,6 +174,18 @@ public class TodoApp
     public void Run()
     {
         Application.Init();
+        
+        // Set up a dark color scheme
+        var colors = new ColorScheme
+        {
+            Normal = new Terminal.Gui.Attribute(Color.White, Color.Black),
+            Focus = new Terminal.Gui.Attribute(Color.BrightYellow, Color.DarkGray),
+            HotNormal = new Terminal.Gui.Attribute(Color.Cyan, Color.Black),
+            HotFocus = new Terminal.Gui.Attribute(Color.BrightYellow, Color.DarkGray),
+            Disabled = new Terminal.Gui.Attribute(Color.Gray, Color.Black)
+        };
+        
+        Application.Top.ColorScheme = colors;
 
         var top = Application.Top;
 
@@ -182,7 +194,8 @@ public class TodoApp
             X = 0,
             Y = 1,
             Width = Dim.Fill(),
-            Height = Dim.Fill()
+            Height = Dim.Fill(),
+            ColorScheme = colors
         };
 
         var menu = new MenuBar(new MenuBarItem[]
@@ -202,13 +215,15 @@ public class TodoApp
             X = 1,
             Y = 1,
             Width = Dim.Fill() - 15,
-            Height = 1
+            Height = 1,
+            ColorScheme = colors
         };
 
         var addButton = new Button("Add Todo")
         {
             X = Pos.Right(_newTodoField) + 1,
-            Y = 1
+            Y = 1,
+            ColorScheme = colors
         };
 
         _todoListView = new ListView(_todos)
@@ -216,25 +231,29 @@ public class TodoApp
             X = 1,
             Y = 3,
             Width = Dim.Fill() - 1,
-            Height = Dim.Fill() - 6
+            Height = Dim.Fill() - 6,
+            ColorScheme = colors
         };
 
         var toggleButton = new Button("Toggle Complete")
         {
             X = 1,
-            Y = Pos.Bottom(_todoListView) + 1
+            Y = Pos.Bottom(_todoListView) + 1,
+            ColorScheme = colors
         };
 
         var deleteButton = new Button("Delete")
         {
             X = Pos.Right(toggleButton) + 2,
-            Y = Pos.Bottom(_todoListView) + 1
+            Y = Pos.Bottom(_todoListView) + 1,
+            ColorScheme = colors
         };
 
         var refreshButton = new Button("Refresh")
         {
             X = Pos.Right(deleteButton) + 2,
-            Y = Pos.Bottom(_todoListView) + 1
+            Y = Pos.Bottom(_todoListView) + 1,
+            ColorScheme = colors
         };
 
         var statusBar = new StatusBar(new StatusItem[]

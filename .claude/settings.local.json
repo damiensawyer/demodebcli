@@ -26,6 +26,7 @@
       "Bash(apt-cache policy:*)",
       "Bash(apt-get:*)",
       "Bash(dotnet build)",
+      "Bash(dotnet build:*)",
       "Bash(dotnet build:*)"
     ],
     "deny": [],

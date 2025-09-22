@@ -8,7 +8,7 @@ if (args.Length > 0)
     {
         var assembly = Assembly.GetExecutingAssembly();
         var version = assembly.GetName().Version?.ToString() ?? "Unknown";
-        var buildDate = GetBuildDate(assembly);
+        var buildDate = GetBuildTimeUtc();
         
         Console.WriteLine($"demodebcli version {version}");
         Console.WriteLine($"Built: {buildDate:yyyy-MM-dd HH:mm:ss} UTC");

@@ -2,14 +2,17 @@
 
 A demonstration CLI application written in C# and compiled with AOT (Ahead of Time) compilation for optimal performance on Linux systems.
 
+This is a **Terminal.Gui Todo List Manager** with persistent SQLite database storage.
+
 ## Features
 
 - **AOT Compiled**: Fast startup and minimal dependencies
-- **Simple Interface**: Easy to use command-line interface
+- **Interactive Terminal UI**: Full-featured Terminal.Gui interface with mouse support
+- **Persistent Storage**: SQLite database for todo items
 - **Version Information**: Built-in version and build date display
-- **Man Page**: Complete manual page documentation
-- **APT Package**: Easy installation on Debian/Ubuntu systems
-- **Auto-updates**: Automatic versioning and upgrade support
+- **Todo Management**: Add, complete, delete, and manage todo items
+- **Timestamps**: Each todo item includes creation date/time
+- **Keyboard Shortcuts**: Full keyboard navigation support
 
 ## Quick Installation
 
@@ -52,29 +55,76 @@ curl -fsSL https://damiensawyer.github.io/demodebcli/install.sh | bash && sudo a
 
 ### Basic Usage
 ```bash
-# Print "Hello, World!"
+# Start the interactive todo list interface
 demodebcli
 
 # Show version information
 demodebcli --version
 demodebcli -v
+
+# Show help and database location
+demodebcli --help
+demodebcli -h
 ```
 
-### Getting Help
-```bash
-# View the manual page
-man demodebcli
+### Todo List Interface
+
+The application provides a full-screen terminal interface with:
+
+- **Text Field**: Enter new todo items
+- **Todo List**: View all todos with completion status (✓ for completed)
+- **Buttons**: Toggle Complete, Delete, Refresh
+- **Menu Bar**: App and Help menus
+- **Status Bar**: Keyboard shortcuts
+
+### Keyboard Controls
+
+- **Enter**: Add new todo (when in text field)
+- **Space/Double-click**: Toggle completion status
+- **Delete**: Delete selected todo (with confirmation)
+- **F5**: Refresh todo list
+- **Ctrl+Q**: Quit application
+- **Mouse**: Full mouse support for all interactions
+
+### Database Location
+
+Todo data is automatically saved to:
 ```
+~/.local/share/demodebcli/todos.db
+```
+
+Use `demodebcli -h` to see the exact path on your system.
 
 ### Example Output
 ```
-$ demodebcli
-Hello, World!
-
 $ demodebcli --version
 demodebcli version 1.0.1
 Built: 2025-09-11 11:30:00 UTC
 Local time: 2025-09-11 21:30:00
+
+$ demodebcli -h
+demodebcli - Terminal.Gui Todo List Manager
+
+USAGE:
+  demodebcli          Start the interactive todo list interface
+  demodebcli -v       Show version information
+  demodebcli -h       Show this help message
+
+DATABASE:
+  Todo data is stored in: /home/user/.local/share/demodebcli/todos.db
+
+CONTROLS:
+  Enter       Add new todo
+  Space       Toggle completion status
+  Delete      Delete selected todo
+  F5          Refresh list
+  Ctrl+Q      Quit application
+
+FEATURES:
+  - Persistent SQLite database storage
+  - Full Terminal.Gui interface with mouse support
+  - Add, complete, and delete todo items
+  - Timestamps for each todo item
 ```
 
 ## Upgrading
@@ -118,6 +168,15 @@ After installation, the following files are installed:
 
 - **Binary**: `/usr/bin/demodebcli`
 - **Man page**: `/usr/share/man/man1/demodebcli.1.gz`
+
+### User Data
+
+The application stores user data in:
+
+- **Todo Database**: `~/.local/share/demodebcli/todos.db`
+- **Directory**: `~/.local/share/demodebcli/`
+
+The database directory is automatically created on first run. Use `demodebcli -h` to see the exact database path.
 
 ## Development
 

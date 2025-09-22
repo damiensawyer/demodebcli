@@ -2,15 +2,48 @@ using System.Reflection;
 using Terminal.Gui;
 using Microsoft.Data.Sqlite;
 
-if (args.Length > 0 && (args[0] == "--version" || args[0] == "-v"))
+if (args.Length > 0)
 {
-    var assembly = Assembly.GetExecutingAssembly();
-    var version = assembly.GetName().Version?.ToString() ?? "Unknown";
-    var buildDate = GetBuildDate(assembly);
-    
-    Console.WriteLine($"demodebcli version {version}");
-    Console.WriteLine($"Built: {buildDate:yyyy-MM-dd HH:mm:ss} UTC");
-    Console.WriteLine($"Local time: {buildDate.ToLocalTime():yyyy-MM-dd HH:mm:ss}");
+    if (args[0] == "--version" || args[0] == "-v")
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var version = assembly.GetName().Version?.ToString() ?? "Unknown";
+        var buildDate = GetBuildDate(assembly);
+        
+        Console.WriteLine($"demodebcli version {version}");
+        Console.WriteLine($"Built: {buildDate:yyyy-MM-dd HH:mm:ss} UTC");
+        Console.WriteLine($"Local time: {buildDate.ToLocalTime():yyyy-MM-dd HH:mm:ss}");
+    }
+    else if (args[0] == "--help" || args[0] == "-h")
+    {
+        Console.WriteLine("demodebcli - Terminal.Gui Todo List Manager");
+        Console.WriteLine();
+        Console.WriteLine("USAGE:");
+        Console.WriteLine("  demodebcli          Start the interactive todo list interface");
+        Console.WriteLine("  demodebcli -v       Show version information");
+        Console.WriteLine("  demodebcli -h       Show this help message");
+        Console.WriteLine();
+        Console.WriteLine("DATABASE:");
+        var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "demodebcli", "todos.db");
+        Console.WriteLine($"  Todo data is stored in: {dbPath}");
+        Console.WriteLine();
+        Console.WriteLine("CONTROLS:");
+        Console.WriteLine("  Enter       Add new todo");
+        Console.WriteLine("  Space       Toggle completion status");
+        Console.WriteLine("  Delete      Delete selected todo");
+        Console.WriteLine("  F5          Refresh list");
+        Console.WriteLine("  Ctrl+Q      Quit application");
+        Console.WriteLine();
+        Console.WriteLine("FEATURES:");
+        Console.WriteLine("  - Persistent SQLite database storage");
+        Console.WriteLine("  - Full Terminal.Gui interface with mouse support");
+        Console.WriteLine("  - Add, complete, and delete todo items");
+        Console.WriteLine("  - Timestamps for each todo item");
+    }
+    else
+    {
+        Console.WriteLine("Unknown option. Use -h for help.");
+    }
 }
 else
 {

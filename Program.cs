@@ -4,11 +4,7 @@ using Microsoft.Data.Sqlite;
 using SQLitePCL;
 
 // Initialize SQLite for AOT compilation
-#if WINDOWS
 Batteries_V2.Init();
-#else
-raw.SetProvider(new SQLitePCL.SQLite3Provider_sqlite3());
-#endif
 
 if (args.Length > 0)
 {

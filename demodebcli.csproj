@@ -16,9 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Terminal.Gui" Version="1.18.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
-    <PackageReference Include="SQLitePCLRaw.bundle_winsqlite3" Version="2.1.6" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
-    <PackageReference Include="SQLitePCLRaw.provider.sqlite3" Version="2.1.6" Condition="!$([MSBuild]::IsOSPlatform('Windows'))" />
-    <PackageReference Include="SQLitePCLRaw.core" Version="2.1.6" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.6" />
   </ItemGroup>
 
 </Project>

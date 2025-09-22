@@ -31,7 +31,8 @@
       "Bash(dpkg:*)",
       "Bash(./out/test/demodebcli --version)",
       "Bash(timeout:*)",
-      "Bash(dotnet clean:*)"
+      "Bash(dotnet clean:*)",
+      "Bash(demodebcli:*)"
     ],
     "deny": [],
     "ask": []

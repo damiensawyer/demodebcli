@@ -8,6 +8,7 @@
     <PublishAot>true</PublishAot>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <AssemblyName>demodebcli</AssemblyName>
     <VersionPrefix>1.1.0</VersionPrefix>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>

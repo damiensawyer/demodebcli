@@ -256,3 +256,5 @@ debian/.debhelper/
 debian/files
 debian/*substvars
 debian/*debhelper.log
+out
+out/test
